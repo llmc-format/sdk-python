@@ -130,9 +130,13 @@ class LLMDParser:
         yaml_data = stream.read(yaml_length)
         if len(yaml_data) != yaml_length:
             raise LLMDFormatError("Incomplete YAML section")
-        
+
         try:
-            return yaml_data.decode("utf-8")
+            # Handle potential null bytes at the beginning (JavaScript SDK compatibility)
+            yaml_text = yaml_data.decode("utf-8")
+            # Strip null bytes and whitespace from the beginning
+            yaml_text = yaml_text.lstrip('\x00').strip()
+            return yaml_text
         except UnicodeDecodeError as e:
             raise LLMDFormatError(f"Invalid UTF-8 in YAML section: {e}") from e
 
@@ -142,15 +146,39 @@ class LLMDParser:
             data = yaml.safe_load(yaml_data)
             if not isinstance(data, dict):
                 raise LLMDFormatError("YAML metadata must be a dictionary")
-            
+
+            # Handle different field names for compatibility
+            # JavaScript SDK uses 'llmd_version', Python SDK uses 'version'
+            if "llmd_version" in data and "version" not in data:
+                data["version"] = data.pop("llmd_version")
+
+            # Handle different field names for timestamps
+            if "created" in data and "created_at" not in data:
+                data["created_at"] = data.pop("created")
+
+            # Handle participants field - JavaScript SDK uses different format
+            if "participants" not in data:
+                # Try to infer participants from other fields or set default
+                data["participants"] = ["user", "assistant"]
+            elif isinstance(data["participants"], list) and len(data["participants"]) > 0:
+                # JavaScript SDK uses objects with role/name/identifier
+                # Convert to simple list of roles for compatibility
+                if isinstance(data["participants"][0], dict):
+                    roles = []
+                    for participant in data["participants"]:
+                        if "role" in participant:
+                            roles.append(participant["role"])
+                    if roles:
+                        data["participants"] = roles
+
             # Validate required fields
             required_fields = ["version", "created_at", "participants"]
             for field in required_fields:
                 if field not in data:
                     raise LLMDFormatError(f"Missing required field: {field}")
-            
+
             return data  # type: ignore
-            
+
         except yaml.YAMLError as e:
             raise LLMDFormatError(f"Invalid YAML metadata: {e}") from e
 
