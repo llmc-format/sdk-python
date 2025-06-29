@@ -21,12 +21,12 @@ LLMC is a standardized file format for storing LLM conversations. It combines YA
 ## Installation
 
 ```bash
-pip install llmd-python
+pip install llmc-python
 ```
 
 Or with uv:
 ```bash
-uv add llmd-python
+uv add llmc-python
 ```
 
 ## Quick Start
@@ -34,7 +34,7 @@ uv add llmd-python
 ### Reading an LLMC file
 
 ```python
-from llmd_python import parse_file
+from llmc_python import parse_file
 
 # Parse an existing LLMC file
 conversation = parse_file("conversation.llmc")
@@ -51,7 +51,7 @@ for message in conversation["messages"]:
 ### Creating an LLMC file
 
 ```python
-from llmd_python import write_file, LLMCConversation
+from llmc_python import write_file, LLMCConversation
 
 # Create conversation data
 conversation: LLMCConversation = {
@@ -84,7 +84,7 @@ write_file(conversation, "my_conversation.llmc")
 ### Using the class-based API
 
 ```python
-from llmd_python import LLMCParser, LLMCWriter
+from llmc_python import LLMCParser, LLMCWriter
 
 # Parse with explicit parser
 parser = LLMCParser()
@@ -121,7 +121,7 @@ writer.write_file(conversation, "output.llmc")
 ### Setup
 
 ```bash
-git clone https://github.com/llmd-format/sdk-python.git
+git clone https://github.com/llmc-format/sdk-python.git
 cd sdk-python
 uv sync
 ```
@@ -153,13 +153,13 @@ LLMC files use a hybrid format:
 - **YAML section**: Human-readable metadata
 - **SQLite section**: Structured conversation data
 
-For complete format specification, see the [LLMC Format Documentation](https://github.com/llmd-format/spec).
+For complete format specification, see the [LLMC Format Documentation](https://github.com/llmc-format/spec).
 
 ## Related Projects
 
-- [LLMC Format Specification](https://github.com/llmd-format/spec)
-- [JavaScript SDK](https://github.com/llmd-format/sdk-js)
-- [CLI Tools](https://github.com/llmd-format/tools-cli)
+- [LLMC Format Specification](https://github.com/llmc-format/spec)
+- [JavaScript SDK](https://github.com/llmc-format/sdk-js)
+- [CLI Tools](https://github.com/llmc-format/tools-cli)
 
 ## License
 
