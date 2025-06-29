@@ -1,4 +1,4 @@
-"""LLMD file parser implementation."""
+"""LLMC file parser implementation."""
 
 import sqlite3
 import struct
@@ -8,58 +8,58 @@ from typing import BinaryIO, Union
 import yaml
 
 from .types import (
-    LLMD_MAGIC,
-    LLMD_VERSION,
+    LLMC_MAGIC,
+    LLMC_VERSION,
     SQLITE_APPLICATION_ID,
-    LLMDAttachment,
-    LLMDConversation,
-    LLMDFormatError,
-    LLMDMessage,
-    LLMDMetadata,
-    LLMDParseError,
+    LLMCAttachment,
+    LLMCConversation,
+    LLMCFormatError,
+    LLMCMessage,
+    LLMCMetadata,
+    LLMCParseError,
 )
 
-__all__ = ["LLMDParser"]
+__all__ = ["LLMCParser"]
 
 
-class LLMDParser:
-    """Parser for LLMD files."""
+class LLMCParser:
+    """Parser for LLMC files."""
 
     def __init__(self) -> None:
         """Initialize the parser."""
         pass
 
-    def parse_file(self, file_path: Union[str, Path]) -> LLMDConversation:
-        """Parse an LLMD file from disk.
+    def parse_file(self, file_path: Union[str, Path]) -> LLMCConversation:
+        """Parse an LLMC file from disk.
         
         Args:
-            file_path: Path to the LLMD file
+            file_path: Path to the LLMC file
             
         Returns:
             Parsed conversation data
             
         Raises:
-            LLMDParseError: If parsing fails
-            LLMDFormatError: If file format is invalid
+            LLMCParseError: If parsing fails
+            LLMCFormatError: If file format is invalid
         """
         try:
             with open(file_path, "rb") as f:
                 return self.parse_stream(f)
         except (OSError, IOError) as e:
-            raise LLMDParseError(f"Failed to read file {file_path}: {e}") from e
+            raise LLMCParseError(f"Failed to read file {file_path}: {e}") from e
 
-    def parse_stream(self, stream: BinaryIO) -> LLMDConversation:
-        """Parse an LLMD file from a binary stream.
+    def parse_stream(self, stream: BinaryIO) -> LLMCConversation:
+        """Parse an LLMC file from a binary stream.
         
         Args:
-            stream: Binary stream containing LLMD data
+            stream: Binary stream containing LLMC data
             
         Returns:
             Parsed conversation data
             
         Raises:
-            LLMDParseError: If parsing fails
-            LLMDFormatError: If file format is invalid
+            LLMCParseError: If parsing fails
+            LLMCFormatError: If file format is invalid
         """
         try:
             # Read and validate header
@@ -77,7 +77,7 @@ class LLMDParser:
             messages, attachments = self._parse_sqlite_data(sqlite_data)
             
             # Construct conversation
-            conversation: LLMDConversation = {
+            conversation: LLMCConversation = {
                 "metadata": metadata,
                 "messages": messages,
             }
@@ -88,21 +88,21 @@ class LLMDParser:
             return conversation
             
         except Exception as e:
-            if isinstance(e, (LLMDParseError, LLMDFormatError)):
+            if isinstance(e, (LLMCParseError, LLMCFormatError)):
                 raise
-            raise LLMDParseError(f"Unexpected error during parsing: {e}") from e
+            raise LLMCParseError(f"Unexpected error during parsing: {e}") from e
 
     def _read_header(self, stream: BinaryIO) -> dict:
-        """Read and validate LLMD file header (32 bytes)."""
-        # Read magic header (8 bytes): "LLMD\x01\x00\x00\x00"
+        """Read and validate LLMC file header (32 bytes)."""
+        # Read magic header (8 bytes): "LLMC\x01\x00\x00\x00"
         magic = stream.read(4)
-        if magic != LLMD_MAGIC:
-            raise LLMDFormatError(f"Invalid magic bytes: {magic!r}")
+        if magic != LLMC_MAGIC:
+            raise LLMCFormatError(f"Invalid magic bytes: {magic!r}")
 
         # Read version
         version = struct.unpack("<B", stream.read(1))[0]
-        if version != LLMD_VERSION:
-            raise LLMDFormatError(f"Unsupported version: {version}")
+        if version != LLMC_VERSION:
+            raise LLMCFormatError(f"Unsupported version: {version}")
 
         # Skip reserved bytes (3 bytes)
         stream.read(3)
@@ -110,7 +110,7 @@ class LLMDParser:
         # Read format version (4 bytes)
         format_version = struct.unpack("<I", stream.read(4))[0]
         if format_version != 1:
-            raise LLMDFormatError(f"Unsupported format version: {format_version}")
+            raise LLMCFormatError(f"Unsupported format version: {format_version}")
 
         # Read YAML length (4 bytes)
         yaml_length = struct.unpack("<I", stream.read(4))[0]
@@ -135,7 +135,7 @@ class LLMDParser:
         """Read YAML section from stream."""
         yaml_data = stream.read(yaml_length)
         if len(yaml_data) != yaml_length:
-            raise LLMDFormatError("Incomplete YAML section")
+            raise LLMCFormatError("Incomplete YAML section")
 
         try:
             # Handle potential null bytes at the beginning (JavaScript SDK compatibility)
@@ -144,14 +144,14 @@ class LLMDParser:
             yaml_text = yaml_text.lstrip('\x00').strip()
             return yaml_text
         except UnicodeDecodeError as e:
-            raise LLMDFormatError(f"Invalid UTF-8 in YAML section: {e}") from e
+            raise LLMCFormatError(f"Invalid UTF-8 in YAML section: {e}") from e
 
-    def _parse_metadata(self, yaml_data: str) -> LLMDMetadata:
+    def _parse_metadata(self, yaml_data: str) -> LLMCMetadata:
         """Parse YAML metadata."""
         try:
             data = yaml.safe_load(yaml_data)
             if not isinstance(data, dict):
-                raise LLMDFormatError("YAML metadata must be a dictionary")
+                raise LLMCFormatError("YAML metadata must be a dictionary")
 
 
 
@@ -178,14 +178,14 @@ class LLMDParser:
             required_fields = ["version", "created_at", "participants"]
             for field in required_fields:
                 if field not in data:
-                    raise LLMDFormatError(f"Missing required field: {field}")
+                    raise LLMCFormatError(f"Missing required field: {field}")
 
             return data  # type: ignore
 
         except yaml.YAMLError as e:
-            raise LLMDFormatError(f"Invalid YAML metadata: {e}") from e
+            raise LLMCFormatError(f"Invalid YAML metadata: {e}") from e
 
-    def _parse_sqlite_data(self, sqlite_data: bytes) -> tuple[list[LLMDMessage], list[LLMDAttachment]]:
+    def _parse_sqlite_data(self, sqlite_data: bytes) -> tuple[list[LLMCMessage], list[LLMCAttachment]]:
         """Parse SQLite database section."""
         # Write SQLite data to temporary file
         import tempfile
@@ -199,11 +199,12 @@ class LLMDParser:
             # Connect to SQLite file
             conn = sqlite3.connect(tmp_path)
 
-            # Verify application ID
+            # Verify application ID (temporarily accept both old and new)
             cursor = conn.execute("PRAGMA application_id;")
             app_id = cursor.fetchone()[0]
-            if app_id != SQLITE_APPLICATION_ID:
-                raise LLMDFormatError(f"Invalid SQLite application ID: {app_id:#x}")
+            OLD_SQLITE_APPLICATION_ID = 0x4C4C4D44  # "LLMD" - temporary compatibility
+            if app_id != SQLITE_APPLICATION_ID and app_id != OLD_SQLITE_APPLICATION_ID:
+                raise LLMCFormatError(f"Invalid SQLite application ID: {app_id:#x}")
 
             # Parse messages
             messages = self._parse_messages(conn)
@@ -214,12 +215,12 @@ class LLMDParser:
             return messages, attachments
 
         except sqlite3.Error as e:
-            raise LLMDFormatError(f"SQLite parsing error: {e}") from e
+            raise LLMCFormatError(f"SQLite parsing error: {e}") from e
         finally:
             conn.close()
             os.unlink(tmp_path)
 
-    def _parse_messages(self, conn: sqlite3.Connection) -> list[LLMDMessage]:
+    def _parse_messages(self, conn: sqlite3.Connection) -> list[LLMCMessage]:
         """Parse messages from SQLite database (supports both schemas)."""
         # Try JavaScript SDK schema first
         try:
@@ -234,7 +235,7 @@ class LLMDParser:
 
             messages = []
             for row in cursor:
-                message: LLMDMessage = {
+                message: LLMCMessage = {
                     "id": f"msg_{row[0]}",  # Convert to string ID
                     "role": row[1],
                     "content": row[2],
@@ -271,7 +272,7 @@ class LLMDParser:
 
                 messages = []
                 for row in cursor:
-                    message: LLMDMessage = {
+                    message: LLMCMessage = {
                         "id": row[0],
                         "role": row[1],
                         "content": row[2],
@@ -296,9 +297,9 @@ class LLMDParser:
                 return messages
 
             except sqlite3.OperationalError as e:
-                raise LLMDFormatError(f"Unsupported database schema: {e}") from e
+                raise LLMCFormatError(f"Unsupported database schema: {e}") from e
 
-    def _parse_attachments(self, conn: sqlite3.Connection) -> list[LLMDAttachment]:
+    def _parse_attachments(self, conn: sqlite3.Connection) -> list[LLMCAttachment]:
         """Parse attachments from SQLite database (supports both schemas)."""
         try:
             # Try JavaScript SDK schema first
@@ -309,7 +310,7 @@ class LLMDParser:
 
             attachments = []
             for row in cursor:
-                attachment: LLMDAttachment = {
+                attachment: LLMCAttachment = {
                     "id": f"att_{row[0]}",  # Convert to string ID
                     "filename": row[1],
                     "content_type": row[2],
@@ -338,7 +339,7 @@ class LLMDParser:
 
                 attachments = []
                 for row in cursor:
-                    attachment: LLMDAttachment = {
+                    attachment: LLMCAttachment = {
                         "id": row[0],
                         "filename": row[1],
                         "content_type": row[2],

@@ -1,4 +1,4 @@
-"""Type definitions for LLMD format."""
+"""Type definitions for LLMC format."""
 
 from __future__ import annotations
 
@@ -12,10 +12,10 @@ else:
     from typing_extensions import NotRequired, TypedDict
 
 __all__ = [
-    "LLMDMetadata",
-    "LLMDMessage", 
-    "LLMDAttachment",
-    "LLMDConversation",
+    "LLMCMetadata",
+    "LLMCMessage", 
+    "LLMCAttachment",
+    "LLMCConversation",
     "MessageRole",
     "AttachmentType",
 ]
@@ -25,8 +25,8 @@ MessageRole = Union["user", "assistant", "system", "function"]
 AttachmentType = Union["image", "audio", "video", "document", "other"]
 
 
-class LLMDMetadata(TypedDict):
-    """LLMD file metadata stored in YAML header."""
+class LLMCMetadata(TypedDict):
+    """LLMC file metadata stored in YAML header."""
     
     version: str
     created_at: str
@@ -38,7 +38,7 @@ class LLMDMetadata(TypedDict):
     model_info: NotRequired[Dict[str, Any]]
 
 
-class LLMDAttachment(TypedDict):
+class LLMCAttachment(TypedDict):
     """Attachment data structure."""
     
     id: str
@@ -50,7 +50,7 @@ class LLMDAttachment(TypedDict):
     metadata: NotRequired[Dict[str, Any]]
 
 
-class LLMDMessage(TypedDict):
+class LLMCMessage(TypedDict):
     """Message data structure."""
     
     id: str
@@ -62,36 +62,36 @@ class LLMDMessage(TypedDict):
     metadata: NotRequired[Dict[str, Any]]
 
 
-class LLMDConversation(TypedDict):
-    """Complete LLMD conversation structure."""
+class LLMCConversation(TypedDict):
+    """Complete LLMC conversation structure."""
     
-    metadata: LLMDMetadata
-    messages: List[LLMDMessage]
-    attachments: NotRequired[List[LLMDAttachment]]
+    metadata: LLMCMetadata
+    messages: List[LLMCMessage]
+    attachments: NotRequired[List[LLMCAttachment]]
 
 
 # Constants
-LLMD_MAGIC = b"LLMD"
-LLMD_VERSION = 1
-LLMD_FORMAT_VERSION = 1
-SQLITE_APPLICATION_ID = 0x4C4C4D44  # "LLMD" in hex
+LLMC_MAGIC = b"LLMC"
+LLMC_VERSION = 1
+LLMC_FORMAT_VERSION = 1
+SQLITE_APPLICATION_ID = 0x4C4C4D43  # "LLMC" in hex
 
 
-class LLMDError(Exception):
-    """Base exception for LLMD-related errors."""
+class LLMCError(Exception):
+    """Base exception for LLMC-related errors."""
     pass
 
 
-class LLMDParseError(LLMDError):
-    """Raised when parsing LLMD file fails."""
+class LLMCParseError(LLMCError):
+    """Raised when parsing LLMC file fails."""
     pass
 
 
-class LLMDValidationError(LLMDError):
-    """Raised when LLMD data validation fails."""
+class LLMCValidationError(LLMCError):
+    """Raised when LLMC data validation fails."""
     pass
 
 
-class LLMDFormatError(LLMDError):
-    """Raised when LLMD file format is invalid."""
+class LLMCFormatError(LLMCError):
+    """Raised when LLMC file format is invalid."""
     pass

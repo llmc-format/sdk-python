@@ -1,4 +1,4 @@
-"""Basic tests for LLMD Python SDK."""
+"""Basic tests for LLMC Python SDK."""
 
 import tempfile
 from datetime import datetime
@@ -7,11 +7,11 @@ from pathlib import Path
 import pytest
 
 from llmd_python import (
-    LLMDParser,
-    LLMDWriter,
-    LLMDConversation,
-    LLMDMessage,
-    LLMDMetadata,
+    LLMCParser,
+    LLMCWriter,
+    LLMCConversation,
+    LLMCMessage,
+    LLMCMetadata,
     parse_file,
     write_file,
 )
@@ -20,14 +20,14 @@ from llmd_python import (
 def test_create_simple_conversation():
     """Test creating a simple conversation."""
     # Create test data
-    metadata: LLMDMetadata = {
+    metadata: LLMCMetadata = {
         "version": "0.1",
         "created_at": "2024-01-15T10:30:00Z",
         "participants": ["user", "assistant"],
         "title": "Test Conversation",
     }
     
-    messages: list[LLMDMessage] = [
+    messages: list[LLMCMessage] = [
         {
             "id": "msg_1",
             "role": "user",
@@ -42,18 +42,18 @@ def test_create_simple_conversation():
         },
     ]
     
-    conversation: LLMDConversation = {
+    conversation: LLMCConversation = {
         "metadata": metadata,
         "messages": messages,
     }
     
     # Test writing and reading
-    with tempfile.NamedTemporaryFile(suffix=".llmd", delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(suffix=".llmc", delete=False) as tmp_file:
         tmp_path = tmp_file.name
     
     try:
         # Write conversation
-        writer = LLMDWriter()
+        writer = LLMCWriter()
         writer.write_file(conversation, tmp_path)
         
         # Verify file exists and has content
@@ -61,7 +61,7 @@ def test_create_simple_conversation():
         assert Path(tmp_path).stat().st_size > 0
         
         # Read conversation back
-        parser = LLMDParser()
+        parser = LLMCParser()
         parsed_conversation = parser.parse_file(tmp_path)
         
         # Verify metadata
@@ -83,7 +83,7 @@ def test_create_simple_conversation():
 def test_convenience_functions():
     """Test convenience functions."""
     # Create test data
-    conversation: LLMDConversation = {
+    conversation: LLMCConversation = {
         "metadata": {
             "version": "0.1",
             "created_at": "2024-01-15T10:30:00Z",
@@ -99,7 +99,7 @@ def test_convenience_functions():
         ],
     }
     
-    with tempfile.NamedTemporaryFile(suffix=".llmd", delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(suffix=".llmc", delete=False) as tmp_file:
         tmp_path = tmp_file.name
     
     try:
@@ -117,13 +117,13 @@ def test_convenience_functions():
 def test_round_trip_with_javascript_file():
     """Test parsing the JavaScript SDK example file."""
     # Path to JavaScript SDK example
-    js_example_path = Path("../sdk-js/examples/sample-conversation.llmd")
+    js_example_path = Path("../sdk-js/examples/sample-conversation.llmc")
     
     if not js_example_path.exists():
         pytest.skip("JavaScript SDK example file not found")
     
     # Parse the JavaScript-created file
-    parser = LLMDParser()
+    parser = LLMCParser()
     conversation = parser.parse_file(js_example_path)
     
     # Verify basic structure
@@ -133,11 +133,11 @@ def test_round_trip_with_javascript_file():
     assert len(conversation["messages"]) > 0
     
     # Test round-trip: write and read back
-    with tempfile.NamedTemporaryFile(suffix=".llmd", delete=False) as tmp_file:
+    with tempfile.NamedTemporaryFile(suffix=".llmc", delete=False) as tmp_file:
         tmp_path = tmp_file.name
     
     try:
-        writer = LLMDWriter()
+        writer = LLMCWriter()
         writer.write_file(conversation, tmp_path)
         
         # Parse our own output

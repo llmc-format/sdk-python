@@ -1,57 +1,57 @@
-"""Python SDK for LLMD (LLM Dialogue) format.
+"""Python SDK for LLMC (LLM Dialogue) format.
 
-This package provides tools to create, parse, and manipulate LLMD files,
+This package provides tools to create, parse, and manipulate LLMC files,
 which are designed to store LLM conversations in a structured format.
 
 Example:
-    >>> from llmd_python import LLMDParser, LLMDWriter
+    >>> from llmd_python import LLMCParser, LLMCWriter
     >>>
-    >>> # Parse an existing LLMD file
-    >>> parser = LLMDParser()
-    >>> conversation = parser.parse_file("conversation.llmd")
+    >>> # Parse an existing LLMC file
+    >>> parser = LLMCParser()
+    >>> conversation = parser.parse_file("conversation.llmc")
     >>>
-    >>> # Create a new LLMD file
-    >>> writer = LLMDWriter()
-    >>> writer.write_file(conversation, "output.llmd")
+    >>> # Create a new LLMC file
+    >>> writer = LLMCWriter()
+    >>> writer.write_file(conversation, "output.llmc")
 """
 
-from .parser import LLMDParser
-from .writer import LLMDWriter
+from .parser import LLMCParser
+from .writer import LLMCWriter
 from .types import (
-    LLMDConversation,
-    LLMDMessage,
-    LLMDMetadata,
-    LLMDAttachment,
-    LLMDError,
-    LLMDParseError,
-    LLMDValidationError,
-    LLMDFormatError,
+    LLMCConversation,
+    LLMCMessage,
+    LLMCMetadata,
+    LLMCAttachment,
+    LLMCError,
+    LLMCParseError,
+    LLMCValidationError,
+    LLMCFormatError,
     MessageRole,
     AttachmentType,
 )
 
 __version__ = "0.1.0"
-__author__ = "LLMD Format Team"
+__author__ = "LLMC Format Team"
 __email__ = "team@llmd-format.org"
 
 __all__ = [
     # Main classes
-    "LLMDParser",
-    "LLMDWriter",
+    "LLMCParser",
+    "LLMCWriter",
 
     # Type definitions
-    "LLMDConversation",
-    "LLMDMessage",
-    "LLMDMetadata",
-    "LLMDAttachment",
+    "LLMCConversation",
+    "LLMCMessage",
+    "LLMCMetadata",
+    "LLMCAttachment",
     "MessageRole",
     "AttachmentType",
 
     # Exceptions
-    "LLMDError",
-    "LLMDParseError",
-    "LLMDValidationError",
-    "LLMDFormatError",
+    "LLMCError",
+    "LLMCParseError",
+    "LLMCValidationError",
+    "LLMCFormatError",
 
     # Metadata
     "__version__",
@@ -60,31 +60,31 @@ __all__ = [
 ]
 
 
-def parse_file(file_path: str) -> LLMDConversation:
-    """Convenience function to parse an LLMD file.
+def parse_file(file_path: str) -> LLMCConversation:
+    """Convenience function to parse an LLMC file.
 
     Args:
-        file_path: Path to the LLMD file
+        file_path: Path to the LLMC file
 
     Returns:
         Parsed conversation data
     """
-    parser = LLMDParser()
+    parser = LLMCParser()
     return parser.parse_file(file_path)
 
 
-def write_file(conversation: LLMDConversation, file_path: str) -> None:
-    """Convenience function to write an LLMD file.
+def write_file(conversation: LLMCConversation, file_path: str) -> None:
+    """Convenience function to write an LLMC file.
 
     Args:
         conversation: Conversation data to write
         file_path: Output file path
     """
-    writer = LLMDWriter()
+    writer = LLMCWriter()
     writer.write_file(conversation, file_path)
 
 
 def main() -> None:
     """CLI entry point."""
-    print("LLMD Python SDK v0.1.0")
+    print("LLMC Python SDK v0.1.0")
     print("Use 'llmd --help' for command line interface")

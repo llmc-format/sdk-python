@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Parse and display an LLMD file using the Python SDK."""
+"""Parse and display an LLMC file using the Python SDK."""
 
 import sys
 from pathlib import Path
-from llmd_python import parse_file, LLMDParseError
+from llmd_python import parse_file, LLMCParseError
 
 def parse_and_display(file_path: str):
-    """Parse an LLMD file and display its contents."""
+    """Parse an LLMC file and display its contents."""
     
     try:
-        print(f"🔍 Parsing LLMD file: {file_path}")
+        print(f"🔍 Parsing LLMC file: {file_path}")
         print("=" * 60)
         
         # Parse the file
@@ -90,8 +90,8 @@ def parse_and_display(file_path: str):
         
         print("✅ Parsing completed successfully!")
         
-    except LLMDParseError as e:
-        print(f"❌ Failed to parse LLMD file: {e}")
+    except LLMCParseError as e:
+        print(f"❌ Failed to parse LLMC file: {e}")
         sys.exit(1)
     except FileNotFoundError:
         print(f"❌ File not found: {file_path}")
@@ -104,7 +104,7 @@ def main():
     """Main function."""
     if len(sys.argv) != 2:
         print("Usage: python parse_sample.py <llmd_file>")
-        print("Example: python parse_sample.py examples/python-sdk-demo.llmd")
+        print("Example: python parse_sample.py examples/python-sdk-demo.llmc")
         sys.exit(1)
     
     file_path = sys.argv[1]

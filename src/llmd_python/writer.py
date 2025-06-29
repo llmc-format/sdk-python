@@ -1,4 +1,4 @@
-"""LLMD file writer implementation."""
+"""LLMC file writer implementation."""
 
 import json
 import sqlite3
@@ -11,43 +11,43 @@ from typing import BinaryIO, Union
 import yaml
 
 from .types import (
-    LLMD_MAGIC,
-    LLMD_VERSION,
-    LLMD_FORMAT_VERSION,
+    LLMC_MAGIC,
+    LLMC_VERSION,
+    LLMC_FORMAT_VERSION,
     SQLITE_APPLICATION_ID,
-    LLMDConversation,
-    LLMDFormatError,
-    LLMDValidationError,
+    LLMCConversation,
+    LLMCFormatError,
+    LLMCValidationError,
 )
 
-__all__ = ["LLMDWriter"]
+__all__ = ["LLMCWriter"]
 
 
-class LLMDWriter:
-    """Writer for LLMD files."""
+class LLMCWriter:
+    """Writer for LLMC files."""
 
     def __init__(self) -> None:
         """Initialize the writer."""
         pass
 
-    def write_file(self, conversation: LLMDConversation, file_path: Union[str, Path]) -> None:
-        """Write conversation data to an LLMD file.
+    def write_file(self, conversation: LLMCConversation, file_path: Union[str, Path]) -> None:
+        """Write conversation data to an LLMC file.
         
         Args:
             conversation: Conversation data to write
             file_path: Output file path
             
         Raises:
-            LLMDValidationError: If conversation data is invalid
-            LLMDFormatError: If writing fails
+            LLMCValidationError: If conversation data is invalid
+            LLMCFormatError: If writing fails
         """
         try:
             with open(file_path, "wb") as f:
                 self.write_stream(conversation, f)
         except (OSError, IOError) as e:
-            raise LLMDFormatError(f"Failed to write file {file_path}: {e}") from e
+            raise LLMCFormatError(f"Failed to write file {file_path}: {e}") from e
 
-    def write_stream(self, conversation: LLMDConversation, stream: BinaryIO) -> None:
+    def write_stream(self, conversation: LLMCConversation, stream: BinaryIO) -> None:
         """Write conversation data to a binary stream.
         
         Args:
@@ -55,8 +55,8 @@ class LLMDWriter:
             stream: Binary stream to write to
             
         Raises:
-            LLMDValidationError: If conversation data is invalid
-            LLMDFormatError: If writing fails
+            LLMCValidationError: If conversation data is invalid
+            LLMCFormatError: If writing fails
         """
         try:
             # Validate conversation data
@@ -70,7 +70,7 @@ class LLMDWriter:
             sqlite_data = self._generate_sqlite(conversation)
             
             # Calculate offsets
-            header_size = 32  # According to LLMD specification: 32-byte header
+            header_size = 32  # According to LLMC specification: 32-byte header
             sqlite_offset = header_size + len(yaml_bytes)
             
             # Write header
@@ -83,51 +83,51 @@ class LLMDWriter:
             stream.write(sqlite_data)
             
         except Exception as e:
-            if isinstance(e, (LLMDValidationError, LLMDFormatError)):
+            if isinstance(e, (LLMCValidationError, LLMCFormatError)):
                 raise
-            raise LLMDFormatError(f"Unexpected error during writing: {e}") from e
+            raise LLMCFormatError(f"Unexpected error during writing: {e}") from e
 
-    def _validate_conversation(self, conversation: LLMDConversation) -> None:
+    def _validate_conversation(self, conversation: LLMCConversation) -> None:
         """Validate conversation data structure."""
         if not isinstance(conversation, dict):
-            raise LLMDValidationError("Conversation must be a dictionary")
+            raise LLMCValidationError("Conversation must be a dictionary")
         
         if "metadata" not in conversation:
-            raise LLMDValidationError("Missing metadata section")
+            raise LLMCValidationError("Missing metadata section")
         
         if "messages" not in conversation:
-            raise LLMDValidationError("Missing messages section")
+            raise LLMCValidationError("Missing messages section")
         
         # Validate metadata
         metadata = conversation["metadata"]
         required_fields = ["version", "created_at", "participants"]
         for field in required_fields:
             if field not in metadata:
-                raise LLMDValidationError(f"Missing required metadata field: {field}")
+                raise LLMCValidationError(f"Missing required metadata field: {field}")
         
         # Validate messages
         messages = conversation["messages"]
         if not isinstance(messages, list):
-            raise LLMDValidationError("Messages must be a list")
+            raise LLMCValidationError("Messages must be a list")
         
         for i, message in enumerate(messages):
             if not isinstance(message, dict):
-                raise LLMDValidationError(f"Message {i} must be a dictionary")
+                raise LLMCValidationError(f"Message {i} must be a dictionary")
             
             required_msg_fields = ["id", "role", "content", "timestamp"]
             for field in required_msg_fields:
                 if field not in message:
-                    raise LLMDValidationError(f"Message {i} missing required field: {field}")
+                    raise LLMCValidationError(f"Message {i} missing required field: {field}")
 
     def _write_header(self, stream: BinaryIO, yaml_length: int, sqlite_offset: int) -> None:
-        """Write LLMD file header (32 bytes according to specification)."""
-        # Magic header (8 bytes): "LLMD\x01\x00\x00\x00"
-        stream.write(LLMD_MAGIC)  # "LLMD" (4 bytes)
-        stream.write(struct.pack("<B", LLMD_VERSION))  # Version 1 (1 byte)
+        """Write LLMC file header (32 bytes according to specification)."""
+        # Magic header (8 bytes): "LLMC\x01\x00\x00\x00"
+        stream.write(LLMC_MAGIC)  # "LLMC" (4 bytes)
+        stream.write(struct.pack("<B", LLMC_VERSION))  # Version 1 (1 byte)
         stream.write(b"\x00\x00\x00")  # Reserved (3 bytes)
 
         # Format version (4 bytes)
-        stream.write(struct.pack("<I", LLMD_FORMAT_VERSION))
+        stream.write(struct.pack("<I", LLMC_FORMAT_VERSION))
 
         # YAML length (4 bytes)
         stream.write(struct.pack("<I", yaml_length))
@@ -151,9 +151,9 @@ class LLMDWriter:
                 sort_keys=False,
             )
         except yaml.YAMLError as e:
-            raise LLMDFormatError(f"Failed to generate YAML: {e}") from e
+            raise LLMCFormatError(f"Failed to generate YAML: {e}") from e
 
-    def _generate_sqlite(self, conversation: LLMDConversation) -> bytes:
+    def _generate_sqlite(self, conversation: LLMCConversation) -> bytes:
         """Generate SQLite database section."""
         # Create temporary database
         with tempfile.NamedTemporaryFile() as tmp_file:
@@ -181,7 +181,7 @@ class LLMDWriter:
                     return f.read()
                     
             except sqlite3.Error as e:
-                raise LLMDFormatError(f"SQLite generation error: {e}") from e
+                raise LLMCFormatError(f"SQLite generation error: {e}") from e
             finally:
                 try:
                     conn.close()

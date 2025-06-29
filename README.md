@@ -1,18 +1,18 @@
-# LLMD Python SDK
+# LLMC Python SDK
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Python SDK for LLMD (LLM Dialogue) format - create, parse, and manipulate conversation files.
+Python SDK for LLMC (LLM Dialogue) format - create, parse, and manipulate conversation files.
 
 ## Overview
 
-LLMD is a standardized file format for storing LLM conversations. It combines YAML metadata with SQLite storage for efficient, structured conversation data management.
+LLMC is a standardized file format for storing LLM conversations. It combines YAML metadata with SQLite storage for efficient, structured conversation data management.
 
 ## Features
 
-- 🔍 **Parse LLMD files**: Read existing conversation files
-- ✍️ **Create LLMD files**: Generate new conversation files
+- 🔍 **Parse LLMC files**: Read existing conversation files
+- ✍️ **Create LLMC files**: Generate new conversation files
 - 🔄 **Round-trip compatibility**: Full fidelity read/write operations
 - 🐍 **Pythonic API**: Clean, type-safe interface
 - 🧪 **Well tested**: Comprehensive test suite
@@ -31,13 +31,13 @@ uv add llmd-python
 
 ## Quick Start
 
-### Reading an LLMD file
+### Reading an LLMC file
 
 ```python
 from llmd_python import parse_file
 
-# Parse an existing LLMD file
-conversation = parse_file("conversation.llmd")
+# Parse an existing LLMC file
+conversation = parse_file("conversation.llmc")
 
 # Access metadata
 print(f"Title: {conversation['metadata'].get('title', 'Untitled')}")
@@ -48,13 +48,13 @@ for message in conversation["messages"]:
     print(f"{message['role']}: {message['content']}")
 ```
 
-### Creating an LLMD file
+### Creating an LLMC file
 
 ```python
-from llmd_python import write_file, LLMDConversation
+from llmd_python import write_file, LLMCConversation
 
 # Create conversation data
-conversation: LLMDConversation = {
+conversation: LLMCConversation = {
     "metadata": {
         "version": "0.1",
         "created_at": "2024-01-15T10:30:00Z",
@@ -78,43 +78,43 @@ conversation: LLMDConversation = {
 }
 
 # Write to file
-write_file(conversation, "my_conversation.llmd")
+write_file(conversation, "my_conversation.llmc")
 ```
 
 ### Using the class-based API
 
 ```python
-from llmd_python import LLMDParser, LLMDWriter
+from llmd_python import LLMCParser, LLMCWriter
 
 # Parse with explicit parser
-parser = LLMDParser()
-conversation = parser.parse_file("input.llmd")
+parser = LLMCParser()
+conversation = parser.parse_file("input.llmc")
 
 # Write with explicit writer
-writer = LLMDWriter()
-writer.write_file(conversation, "output.llmd")
+writer = LLMCWriter()
+writer.write_file(conversation, "output.llmc")
 ```
 
 ## API Reference
 
 ### Core Classes
 
-- `LLMDParser`: Parse LLMD files
-- `LLMDWriter`: Create LLMD files
+- `LLMCParser`: Parse LLMC files
+- `LLMCWriter`: Create LLMC files
 
 ### Type Definitions
 
-- `LLMDConversation`: Complete conversation structure
-- `LLMDMessage`: Individual message
-- `LLMDMetadata`: File metadata
-- `LLMDAttachment`: File attachment
+- `LLMCConversation`: Complete conversation structure
+- `LLMCMessage`: Individual message
+- `LLMCMetadata`: File metadata
+- `LLMCAttachment`: File attachment
 
 ### Exceptions
 
-- `LLMDError`: Base exception
-- `LLMDParseError`: Parsing errors
-- `LLMDValidationError`: Data validation errors
-- `LLMDFormatError`: File format errors
+- `LLMCError`: Base exception
+- `LLMCParseError`: Parsing errors
+- `LLMCValidationError`: Data validation errors
+- `LLMCFormatError`: File format errors
 
 ## Development
 
@@ -146,18 +146,18 @@ uv run isort src/ tests/
 uv run flake8 src/ tests/
 ```
 
-## LLMD Format
+## LLMC Format
 
-LLMD files use a hybrid format:
+LLMC files use a hybrid format:
 - **Header**: Magic bytes + metadata pointers
 - **YAML section**: Human-readable metadata
 - **SQLite section**: Structured conversation data
 
-For complete format specification, see the [LLMD Format Documentation](https://github.com/llmd-format/spec).
+For complete format specification, see the [LLMC Format Documentation](https://github.com/llmd-format/spec).
 
 ## Related Projects
 
-- [LLMD Format Specification](https://github.com/llmd-format/spec)
+- [LLMC Format Specification](https://github.com/llmd-format/spec)
 - [JavaScript SDK](https://github.com/llmd-format/sdk-js)
 - [CLI Tools](https://github.com/llmd-format/tools-cli)
 
