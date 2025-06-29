@@ -199,11 +199,10 @@ class LLMCParser:
             # Connect to SQLite file
             conn = sqlite3.connect(tmp_path)
 
-            # Verify application ID (temporarily accept both old and new)
+            # Verify application ID
             cursor = conn.execute("PRAGMA application_id;")
             app_id = cursor.fetchone()[0]
-            OLD_SQLITE_APPLICATION_ID = 0x4C4C4D44  # "LLMD" - temporary compatibility
-            if app_id != SQLITE_APPLICATION_ID and app_id != OLD_SQLITE_APPLICATION_ID:
+            if app_id != SQLITE_APPLICATION_ID:
                 raise LLMCFormatError(f"Invalid SQLite application ID: {app_id:#x}")
 
             # Parse messages
