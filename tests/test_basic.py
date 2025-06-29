@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from llmd_python import (
+from llmc_python import (
     LLMCParser,
     LLMCWriter,
     LLMCConversation,

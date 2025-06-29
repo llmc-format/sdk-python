@@ -3,7 +3,7 @@
 
 import sys
 from pathlib import Path
-from llmd_python import parse_file, LLMCParseError
+from llmc_python import parse_file, LLMCParseError
 
 def parse_and_display(file_path: str):
     """Parse an LLMC file and display its contents."""
@@ -103,7 +103,7 @@ def parse_and_display(file_path: str):
 def main():
     """Main function."""
     if len(sys.argv) != 2:
-        print("Usage: python parse_sample.py <llmd_file>")
+        print("Usage: python parse_sample.py <llmc_file>")
         print("Example: python parse_sample.py examples/python-sdk-demo.llmc")
         sys.exit(1)
     

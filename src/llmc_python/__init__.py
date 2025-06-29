@@ -4,7 +4,7 @@ This package provides tools to create, parse, and manipulate LLMC files,
 which are designed to store LLM conversations in a structured format.
 
 Example:
-    >>> from llmd_python import LLMCParser, LLMCWriter
+    >>> from llmc_python import LLMCParser, LLMCWriter
     >>>
     >>> # Parse an existing LLMC file
     >>> parser = LLMCParser()
@@ -32,7 +32,7 @@ from .types import (
 
 __version__ = "0.1.0"
 __author__ = "LLMC Format Team"
-__email__ = "team@llmd-format.org"
+__email__ = "team@llmc-format.org"
 
 __all__ = [
     # Main classes
@@ -87,4 +87,4 @@ def write_file(conversation: LLMCConversation, file_path: str) -> None:
 def main() -> None:
     """CLI entry point."""
     print("LLMC Python SDK v0.1.0")
-    print("Use 'llmd --help' for command line interface")
+    print("Use 'llmc --help' for command line interface")

@@ -2,7 +2,7 @@
 """Create a sample LLMC file using the Python SDK."""
 
 from datetime import datetime
-from llmd_python import write_file, LLMCConversation
+from llmc_python import write_file, LLMCConversation
 
 def create_sample_conversation():
     """Create a sample conversation and save it as LLMC file."""
@@ -57,7 +57,7 @@ def create_sample_conversation():
             {
                 "id": "msg_006",
                 "role": "assistant",
-                "content": "Getting started is easy! Here's a quick example:\n\n```python\nfrom llmd_python import parse_file, write_file\n\n# Read an existing LLMC file\nconversation = parse_file('my_chat.llmc')\n\n# Access the data\nprint(conversation['metadata']['title'])\nfor msg in conversation['messages']:\n    print(f\"{msg['role']}: {msg['content']}\")\n\n# Create and save a new conversation\nwrite_file(new_conversation, 'output.llmc')\n```\n\nThe SDK handles all the format details for you!",
+                "content": "Getting started is easy! Here's a quick example:\n\n```python\nfrom llmc_python import parse_file, write_file\n\n# Read an existing LLMC file\nconversation = parse_file('my_chat.llmc')\n\n# Access the data\nprint(conversation['metadata']['title'])\nfor msg in conversation['messages']:\n    print(f\"{msg['role']}: {msg['content']}\")\n\n# Create and save a new conversation\nwrite_file(new_conversation, 'output.llmc')\n```\n\nThe SDK handles all the format details for you!",
                 "timestamp": "2024-01-15T10:30:25Z"
             }
         ]

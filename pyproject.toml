@@ -1,10 +1,10 @@
 [project]
-name = "llmd-python"
+name = "llmc-python"
 version = "0.1.0"
-description = "Python SDK for LLMD (LLM Dialogue) format - create, parse, and manipulate conversation files"
+description = "Python SDK for LLMC (LLM Conversation) format - create, parse, and manipulate conversation files"
 readme = "README.md"
 authors = [
-    { name = "LLMD Format Team", email = "team@llmd-format.org" }
+    { name = "LLMC Format Team", email = "team@llmc-format.org" }
 ]
 requires-python = ">=3.9"
 dependencies = [
@@ -27,10 +27,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/llmd-format/sdk-python"
-Repository = "https://github.com/llmd-format/sdk-python"
-Documentation = "https://github.com/llmd-format/sdk-python#readme"
-"Bug Tracker" = "https://github.com/llmd-format/sdk-python/issues"
+Homepage = "https://github.com/llmc-format/sdk-python"
+Repository = "https://github.com/llmc-format/sdk-python"
+Documentation = "https://github.com/llmc-format/sdk-python#readme"
+"Bug Tracker" = "https://github.com/llmc-format/sdk-python/issues"
 
 [project.optional-dependencies]
 dev = [
@@ -43,7 +43,7 @@ dev = [
 ]
 
 [project.scripts]
-llmd = "llmd_python.cli:main"
+llmc = "llmc_python.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -57,7 +57,7 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
-    "--cov=llmd_python",
+    "--cov=llmc_python",
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
@@ -99,7 +99,7 @@ extend-exclude = '''
 profile = "black"
 multi_line_output = 3
 line_length = 88
-known_first_party = ["llmd_python"]
+known_first_party = ["llmc_python"]
 
 [dependency-groups]
 dev = [
