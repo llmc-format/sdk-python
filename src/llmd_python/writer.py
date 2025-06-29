@@ -70,7 +70,7 @@ class LLMDWriter:
             sqlite_data = self._generate_sqlite(conversation)
             
             # Calculate offsets
-            header_size = 24  # Magic(4) + Version(1) + Reserved(3) + FormatVer(4) + YAMLLen(4) + SQLiteOffset(8)
+            header_size = 32  # According to LLMD specification: 32-byte header
             sqlite_offset = header_size + len(yaml_bytes)
             
             # Write header
@@ -120,24 +120,26 @@ class LLMDWriter:
                     raise LLMDValidationError(f"Message {i} missing required field: {field}")
 
     def _write_header(self, stream: BinaryIO, yaml_length: int, sqlite_offset: int) -> None:
-        """Write LLMD file header."""
-        # Magic bytes
-        stream.write(LLMD_MAGIC)
-        
-        # Version
-        stream.write(struct.pack("<B", LLMD_VERSION))
-        
-        # Reserved bytes
-        stream.write(b"\x00\x00\x00")
-        
-        # Format version
+        """Write LLMD file header (32 bytes according to specification)."""
+        # Magic header (8 bytes): "LLMD\x01\x00\x00\x00"
+        stream.write(LLMD_MAGIC)  # "LLMD" (4 bytes)
+        stream.write(struct.pack("<B", LLMD_VERSION))  # Version 1 (1 byte)
+        stream.write(b"\x00\x00\x00")  # Reserved (3 bytes)
+
+        # Format version (4 bytes)
         stream.write(struct.pack("<I", LLMD_FORMAT_VERSION))
-        
-        # YAML length
+
+        # YAML length (4 bytes)
         stream.write(struct.pack("<I", yaml_length))
-        
-        # SQLite offset
+
+        # SQLite offset (8 bytes)
         stream.write(struct.pack("<Q", sqlite_offset))
+
+        # Encryption flags (1 byte) - no encryption in v0.1
+        stream.write(b"\x00")
+
+        # Reserved (7 bytes) - all zeros
+        stream.write(b"\x00\x00\x00\x00\x00\x00\x00")
 
     def _generate_yaml(self, metadata: dict) -> str:
         """Generate YAML metadata section."""

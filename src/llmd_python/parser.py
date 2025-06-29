@@ -93,31 +93,37 @@ class LLMDParser:
             raise LLMDParseError(f"Unexpected error during parsing: {e}") from e
 
     def _read_header(self, stream: BinaryIO) -> dict:
-        """Read and validate LLMD file header."""
-        # Read magic bytes
+        """Read and validate LLMD file header (32 bytes)."""
+        # Read magic header (8 bytes): "LLMD\x01\x00\x00\x00"
         magic = stream.read(4)
         if magic != LLMD_MAGIC:
             raise LLMDFormatError(f"Invalid magic bytes: {magic!r}")
-        
+
         # Read version
         version = struct.unpack("<B", stream.read(1))[0]
         if version != LLMD_VERSION:
             raise LLMDFormatError(f"Unsupported version: {version}")
-        
-        # Skip reserved bytes
+
+        # Skip reserved bytes (3 bytes)
         stream.read(3)
-        
-        # Read format version
+
+        # Read format version (4 bytes)
         format_version = struct.unpack("<I", stream.read(4))[0]
         if format_version != 1:
             raise LLMDFormatError(f"Unsupported format version: {format_version}")
-        
-        # Read YAML length
+
+        # Read YAML length (4 bytes)
         yaml_length = struct.unpack("<I", stream.read(4))[0]
-        
-        # Read SQLite offset
+
+        # Read SQLite offset (8 bytes)
         sqlite_offset = struct.unpack("<Q", stream.read(8))[0]
-        
+
+        # Read encryption flags (1 byte) - skip for v0.1
+        stream.read(1)
+
+        # Skip reserved bytes (7 bytes)
+        stream.read(7)
+
         return {
             "version": version,
             "format_version": format_version,
@@ -217,67 +223,143 @@ class LLMDParser:
             os.unlink(tmp_path)
 
     def _parse_messages(self, conn: sqlite3.Connection) -> list[LLMDMessage]:
-        """Parse messages from SQLite database."""
-        cursor = conn.execute("""
-            SELECT id, role, content, timestamp, parent_id, attachments, metadata
-            FROM messages
-            ORDER BY timestamp
-        """)
-        
-        messages = []
-        for row in cursor:
-            message: LLMDMessage = {
-                "id": row[0],
-                "role": row[1],
-                "content": row[2],
-                "timestamp": row[3],
-            }
-            
-            if row[4] is not None:
-                message["parent_id"] = row[4]
-            
-            if row[5]:
-                # Parse JSON array of attachment IDs
-                import json
-                message["attachments"] = json.loads(row[5])
-            
-            if row[6]:
-                # Parse JSON metadata
-                import json
-                message["metadata"] = json.loads(row[6])
-            
-            messages.append(message)
-        
-        return messages
-
-    def _parse_attachments(self, conn: sqlite3.Connection) -> list[LLMDAttachment]:
-        """Parse attachments from SQLite database."""
+        """Parse messages from SQLite database (supports both schemas)."""
+        # Try JavaScript SDK schema first
         try:
             cursor = conn.execute("""
-                SELECT id, filename, content_type, size, data, created_at, metadata
+                SELECT m.id, m.role, m.content, m.timestamp, m.parent_id, m.metadata,
+                       GROUP_CONCAT(a.id) as attachment_ids
+                FROM messages m
+                LEFT JOIN attachments a ON a.message_id = m.id
+                GROUP BY m.id, m.role, m.content, m.timestamp, m.parent_id, m.metadata
+                ORDER BY m.sequence, m.timestamp
+            """)
+
+            messages = []
+            for row in cursor:
+                message: LLMDMessage = {
+                    "id": f"msg_{row[0]}",  # Convert to string ID
+                    "role": row[1],
+                    "content": row[2],
+                    "timestamp": row[3],
+                }
+
+                if row[4] is not None:
+                    message["parent_id"] = f"msg_{row[4]}"
+
+                if row[6]:  # attachment_ids
+                    attachment_ids = [f"att_{aid}" for aid in row[6].split(',') if aid]
+                    if attachment_ids:
+                        message["attachments"] = attachment_ids
+
+                if row[5]:  # metadata
+                    import json
+                    try:
+                        message["metadata"] = json.loads(row[5])
+                    except json.JSONDecodeError:
+                        pass
+
+                messages.append(message)
+
+            return messages
+
+        except sqlite3.OperationalError:
+            # Fall back to Python SDK schema
+            try:
+                cursor = conn.execute("""
+                    SELECT id, role, content, timestamp, parent_id, attachments, metadata
+                    FROM messages
+                    ORDER BY timestamp
+                """)
+
+                messages = []
+                for row in cursor:
+                    message: LLMDMessage = {
+                        "id": row[0],
+                        "role": row[1],
+                        "content": row[2],
+                        "timestamp": row[3],
+                    }
+
+                    if row[4] is not None:
+                        message["parent_id"] = row[4]
+
+                    if row[5]:
+                        # Parse JSON array of attachment IDs
+                        import json
+                        message["attachments"] = json.loads(row[5])
+
+                    if row[6]:
+                        # Parse JSON metadata
+                        import json
+                        message["metadata"] = json.loads(row[6])
+
+                    messages.append(message)
+
+                return messages
+
+            except sqlite3.OperationalError as e:
+                raise LLMDFormatError(f"Unsupported database schema: {e}") from e
+
+    def _parse_attachments(self, conn: sqlite3.Connection) -> list[LLMDAttachment]:
+        """Parse attachments from SQLite database (supports both schemas)."""
+        try:
+            # Try JavaScript SDK schema first
+            cursor = conn.execute("""
+                SELECT id, filename, content_type, size, data, checksum, metadata
                 FROM attachments
             """)
+
+            attachments = []
+            for row in cursor:
+                attachment: LLMDAttachment = {
+                    "id": f"att_{row[0]}",  # Convert to string ID
+                    "filename": row[1],
+                    "content_type": row[2],
+                    "size": row[3],
+                    "data": row[4],
+                }
+
+                if row[6]:  # metadata
+                    import json
+                    try:
+                        attachment["metadata"] = json.loads(row[6])
+                    except json.JSONDecodeError:
+                        pass
+
+                attachments.append(attachment)
+
+            return attachments
+
         except sqlite3.OperationalError:
-            # Attachments table doesn't exist
-            return []
-        
-        attachments = []
-        for row in cursor:
-            attachment: LLMDAttachment = {
-                "id": row[0],
-                "filename": row[1],
-                "content_type": row[2],
-                "size": row[3],
-                "data": row[4],
-            }
-            
-            if row[5]:
-                attachment["created_at"] = row[5]
-            
-            if row[6]:
-                import json
-                attachment["metadata"] = json.loads(row[6])
-            
-            attachments.append(attachment)
-        
-        return attachments
+            # Try Python SDK schema
+            try:
+                cursor = conn.execute("""
+                    SELECT id, filename, content_type, size, data, created_at, metadata
+                    FROM attachments
+                """)
+
+                attachments = []
+                for row in cursor:
+                    attachment: LLMDAttachment = {
+                        "id": row[0],
+                        "filename": row[1],
+                        "content_type": row[2],
+                        "size": row[3],
+                        "data": row[4],
+                    }
+
+                    if row[5]:
+                        attachment["created_at"] = row[5]
+
+                    if row[6]:
+                        import json
+                        attachment["metadata"] = json.loads(row[6])
+
+                    attachments.append(attachment)
+
+                return attachments
+
+            except sqlite3.OperationalError:
+                # No attachments table
+                return []
