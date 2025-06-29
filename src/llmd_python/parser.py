@@ -153,10 +153,7 @@ class LLMDParser:
             if not isinstance(data, dict):
                 raise LLMDFormatError("YAML metadata must be a dictionary")
 
-            # Handle different field names for compatibility
-            # JavaScript SDK uses 'llmd_version', Python SDK uses 'version'
-            if "llmd_version" in data and "version" not in data:
-                data["version"] = data.pop("llmd_version")
+
 
             # Handle different field names for timestamps
             if "created" in data and "created_at" not in data:
